@@ -1,14 +1,5 @@
-const { openDatabase } = require('expo-sqlite');
+import * as SQLite from 'expo-sqlite';
 
-export class DatabaseConnection {
-  private static database: any;
-
-  private constructor() {}
-
-  public static getConnection() {
-    if (!this.database) {
-      this.database = openDatabase('russia.db');
-    }
-    return this.database;
-  }
-}
+export const openDatabase = () => {
+  return SQLite.openDatabase('russia.db');
+};
