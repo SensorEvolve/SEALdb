@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,30 +7,62 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-} from "react-native";
-import { openDatabase } from "./src/db/database";
-import { loadVehicles } from "./src/services/vehicleService";
-import { Vehicle } from "./src/types/vehicle";
+} from 'react-native';
+import * as SQLite from 'expo-sqlite';
+import { QUERIES } from './src/db/queries';
+import { openDatabase } from './src/db/database';
+
+interface Vehicle {
+  Name: string;
+  Type: string;
+  'Max Speed (km/h)': number;
+  'Service Ceiling (m)': number;
+  'Range (km)': number;
+  'Combat Radius (km)': number;
+  category: string;
+}
 
 export default function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const initializeApp = async () => {
+    const loadData = async () => {
       try {
-        const db = await openDatabase();
-        const loadedVehicles = await loadVehicles(db);
-        setVehicles(loadedVehicles);
+        const db = openDatabase();
+        const categories = Object.values(QUERIES);
+        
+        db.transaction(
+          (tx: SQLite.SQLTransaction) => {
+            categories.forEach((query) => {
+              tx.executeSql(
+                query,
+                [],
+                (_, result) => {
+                  const newVehicles = result.rows._array as Vehicle[];
+                  setVehicles(current => [...current, ...newVehicles]);
+                },
+                (_, error) => {
+                  console.error('Error executing query:', error);
+                  return false;
+                }
+              );
+            });
+          },
+          (error) => {
+            console.error('Transaction error:', error);
+            setError('Failed to load database');
+          }
+        );
       } catch (err) {
-        console.error("Error initializing app:", err);
-        setError("Failed to load database");
+        console.error('Database error:', err);
+        setError('Failed to load database');
       }
     };
 
-    initializeApp();
+    loadData();
   }, []);
 
   if (error) {
@@ -52,7 +84,7 @@ export default function App() {
           showsHorizontalScrollIndicator={false}
           style={styles.categoryScroll}
         >
-          {["all", "bomber", "fighter", "helicopter", "transport"].map(
+          {['all', 'bomber', 'fighter', 'helicopter', 'transport'].map(
             (category) => (
               <TouchableOpacity
                 key={category}
@@ -74,7 +106,7 @@ export default function App() {
           {vehicles
             .filter(
               (v) =>
-                selectedCategory === "all" || v.category === selectedCategory
+                selectedCategory === 'all' || v.category === selectedCategory
             )
             .map((vehicle, index) => (
               <TouchableOpacity
@@ -86,10 +118,10 @@ export default function App() {
                 <Text style={styles.cardSubtitle}>{vehicle.Type}</Text>
                 <View style={styles.specs}>
                   <Text style={styles.specText}>
-                    Speed: {vehicle["Max Speed (km/h)"]} km/h
+                    Speed: {vehicle['Max Speed (km/h)']} km/h
                   </Text>
                   <Text style={styles.specText}>
-                    Range: {vehicle["Range (km)"]} km
+                    Range: {vehicle['Range (km)']} km
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -103,7 +135,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1E2022",
+    backgroundColor: '#1E2022',
   },
   scrollView: {
     flex: 1,
@@ -111,46 +143,46 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#E5E5E5",
+    fontWeight: 'bold',
+    color: '#E5E5E5',
     marginBottom: 16,
   },
   categoryScroll: {
     marginBottom: 16,
   },
   categoryButton: {
-    backgroundColor: "#2C2F31",
+    backgroundColor: '#2C2F31',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: "#4A4E51",
+    borderColor: '#4A4E51',
   },
   categoryButtonActive: {
-    backgroundColor: "#4A4E51",
+    backgroundColor: '#4A4E51',
   },
   categoryButtonText: {
-    color: "#E5E5E5",
+    color: '#E5E5E5',
     fontSize: 16,
   },
   vehicleList: {
     gap: 16,
   },
   card: {
-    backgroundColor: "#2C2F31",
+    backgroundColor: '#2C2F31',
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#E5E5E5",
+    fontWeight: 'bold',
+    color: '#E5E5E5',
     marginBottom: 4,
   },
   cardSubtitle: {
-    color: "#8B939A",
+    color: '#8B939A',
     fontSize: 14,
     marginBottom: 8,
   },
@@ -158,13 +190,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   specText: {
-    color: "#E5E5E5",
+    color: '#E5E5E5',
     fontSize: 14,
   },
   errorText: {
-    color: "#E5E5E5",
+    color: '#E5E5E5',
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: 20,
   },
 });
