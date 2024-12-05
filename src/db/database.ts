@@ -1,5 +1,5 @@
-import { openDatabase } from 'expo-sqlite';
+import { openDatabaseSync } from "expo-sqlite";
 
 export function getDatabase() {
-  return openDatabase('russia.db');
+  return openDatabaseSync("russia.db");
 }
