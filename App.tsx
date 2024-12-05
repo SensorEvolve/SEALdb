@@ -47,7 +47,7 @@ export default function App() {
       const db = openDatabase();
 
       Object.entries(QUERIES).forEach(([category, query]) => {
-        db._transaction((tx: any) => {
+        db.transaction((tx: any) => {
           tx.executeSql(
             query,
             [],
