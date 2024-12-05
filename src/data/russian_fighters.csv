@@ -1,0 +1,4 @@
+Name,Type,Generation,Max Speed (km/h),Service Ceiling (m),Range (km),Combat Radius (km),Radar System,Radar Range (km),Service Year,Status,Armament,Special Features,Variants
+Su-57,Fighter,5th,2440,20000,3500,1500,N036 Byelka,400,2020,Active,Air-to-air missiles; 30mm cannon,Stealth features; Supercruise,Su-57E
+Su-35S,Fighter,4++,2400,18000,3600,1580,Irbis-E,350,2014,Active,30mm cannon; missiles; bombs,Thrust vectoring; Advanced avionics,Su-35SK
+MiG-35,Fighter,4++,2400,17500,2000,1000,Zhuk-AE,160,2019,Active,30mm cannon; missiles,AESA radar; Advanced cockpit,MiG-35D
