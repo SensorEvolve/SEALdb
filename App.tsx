@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { QUERIES } from './src/db/queries';
-import { openDatabase } from './src/db/database';
 
 type Vehicle = {
   Name: string;
@@ -29,28 +28,20 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const db = openDatabase();
-      if (!db) {
-        throw new Error('Could not open database');
-      }
+    const db = SQLite.openDatabase('russia.db');
 
-      Object.entries(QUERIES).forEach(([category, query]) => {
-        (db as any).exec([{ sql: query, args: [] }], false, (err: Error, resultSet: any[]) => {
-          if (err) {
-            console.error(`Error executing ${category} query:`, err);
-            return;
-          }
-          
-          if (resultSet && resultSet[0] && resultSet[0].rows) {
-            setVehicles(curr => [...curr, ...resultSet[0].rows]);
-          }
-        });
+    Object.entries(QUERIES).forEach(([category, query]) => {
+      db.exec([{ sql: query, args: [] }], false, (err, resultSet) => {
+        if (err) {
+          console.error(`Error executing ${category} query:`, err);
+          setError('Failed to load database');
+          return;
+        }
+        if (resultSet && resultSet[0] && resultSet[0].rows) {
+          setVehicles(curr => [...curr, ...resultSet[0].rows]);
+        }
       });
-    } catch (err) {
-      console.error('Database error:', err);
-      setError('Failed to load database');
-    }
+    });
   }, []);
 
   if (error) {
