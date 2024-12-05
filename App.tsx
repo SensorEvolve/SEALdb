@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { DatabaseConnection } from './src/db/database';
+import * as SQLite from 'expo-sqlite';
 import { QUERIES } from './src/db/queries';
 
 type Vehicle = {
@@ -28,38 +28,32 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const db = DatabaseConnection.getConnection();
-        
-        for (const [category, query] of Object.entries(QUERIES)) {
-          await new Promise<void>((resolve, reject) => {
-            db.transaction(tx => {
-              tx.executeSql(
-                query,
-                [],
-                (_, result) => {
-                  if (result.rows && result.rows._array) {
-                    setVehicles(curr => [...curr, ...result.rows._array]);
-                  }
-                  resolve();
-                },
-                (_, error) => {
-                  console.error(`Error executing ${category} query:`, error);
-                  reject(error);
-                  return false;
-                }
-              );
-            });
-          });
-        }
-      } catch (err) {
-        console.error('Database error:', err);
-        setError('Failed to load database');
-      }
-    };
+    const db = SQLite.openDatabase('russia.db');
+    const allVehicles: Vehicle[] = [];
 
-    loadData();
+    Object.entries(QUERIES).forEach(([category, query]) => {
+      db.transaction(
+        tx => {
+          tx.executeSql(
+            query,
+            [],
+            (_, result) => {
+              if (result.rows && result.rows._array) {
+                setVehicles(curr => [...curr, ...result.rows._array]);
+              }
+            },
+            (_, error) => {
+              console.error(`Error executing ${category} query:`, error);
+              return false;
+            }
+          );
+        },
+        error => {
+          console.error('Transaction error:', error);
+          setError('Failed to load database');
+        }
+      );
+    });
   }, []);
 
   if (error) {
