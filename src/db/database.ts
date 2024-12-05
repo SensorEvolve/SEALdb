@@ -1,28 +1,24 @@
-// db/database.ts
+// src/db/database.ts
 import * as SQLite from "expo-sqlite";
-
-interface SQLResultSet {
-  insertId: number;
-  rows: {
-    length: number;
-    item: (index: number) => any;
-    _array: any[];
-  };
-  rowsAffected: number;
-}
-
-interface SQLError {
-  code: number;
-  message: string;
-}
+import { Platform } from "react-native";
 
 interface SQLTransaction {
   executeSql: (
     sqlStatement: string,
     args?: any[],
     callback?: (transaction: SQLTransaction, resultSet: SQLResultSet) => void,
-    errorCallback?: (transaction: SQLTransaction, error: SQLError) => boolean
+    errorCallback?: (transaction: SQLTransaction, error: Error) => boolean
   ) => void;
+}
+
+interface SQLResultSet {
+  insertId: number;
+  rowsAffected: number;
+  rows: {
+    length: number;
+    _array: any[];
+    item: (idx: number) => any;
+  };
 }
 
 const db = SQLite.openDatabase("russia.db");
@@ -53,14 +49,8 @@ export const setupDatabase = (): Promise<void> => {
             "Variants" TEXT
           )
         `);
-
-        // Add sample data
-        tx.executeSql(`
-          INSERT INTO russian_fighters VALUES
-          ('Su-57', 'Fighter', '5th', 2440, 20000, 3500, 1500, 'N036 Byelka', '400', 2020, 'Active', 'Air-to-air missiles, 30mm cannon', 'Stealth features, Supercruise', 'Su-57E')
-        `);
       },
-      (error: SQLError) => {
+      (error: Error) => {
         console.error("Error setting up database:", error);
         reject(error);
       },
@@ -71,3 +61,5 @@ export const setupDatabase = (): Promise<void> => {
     );
   });
 };
+
+export { db };
