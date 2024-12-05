@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { openDatabase } from 'expo-sqlite';
+import { DatabaseConnection } from './src/db/database';
 import { QUERIES } from './src/db/queries';
 
 type Vehicle = {
@@ -28,36 +28,38 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const db = openDatabase('russia.db');
-      
-      Object.entries(QUERIES).forEach(([category, query]) => {
-        db.transaction(
-          (tx) => {
-            tx.executeSql(
-              query,
-              [],
-              (_, result) => {
-                if (result.rows && result.rows._array) {
-                  setVehicles(curr => [...curr, ...result.rows._array]);
+    const loadData = async () => {
+      try {
+        const db = DatabaseConnection.getConnection();
+        
+        for (const [category, query] of Object.entries(QUERIES)) {
+          await new Promise<void>((resolve, reject) => {
+            db.transaction(tx => {
+              tx.executeSql(
+                query,
+                [],
+                (_, result) => {
+                  if (result.rows && result.rows._array) {
+                    setVehicles(curr => [...curr, ...result.rows._array]);
+                  }
+                  resolve();
+                },
+                (_, error) => {
+                  console.error(`Error executing ${category} query:`, error);
+                  reject(error);
+                  return false;
                 }
-              },
-              (_, error) => {
-                console.error(`Error executing ${category} query:`, error);
-                return false;
-              }
-            );
-          },
-          (error) => {
-            console.error('Transaction error:', error);
-            setError('Failed to load database');
-          }
-        );
-      });
-    } catch (err) {
-      console.error('Database error:', err);
-      setError('Failed to load database');
-    }
+              );
+            });
+          });
+        }
+      } catch (err) {
+        console.error('Database error:', err);
+        setError('Failed to load database');
+      }
+    };
+
+    loadData();
   }, []);
 
   if (error) {
