@@ -1,5 +1,5 @@
-import * as SQLite from 'expo-sqlite';
+import { openDatabase } from 'expo-sqlite';
 
-export const openDatabase = () => {
-  return SQLite.openDatabase('russia.db');
-};
+export function getDatabase() {
+  return openDatabase('russia.db');
+}
