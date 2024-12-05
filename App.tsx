@@ -8,9 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import * as SQLite from 'expo-sqlite';
+import { openDatabase } from 'expo-sqlite';
 import { QUERIES } from './src/db/queries';
-import { openDatabase } from './src/db/database';
 
 type Vehicle = {
   Name: string;
@@ -29,15 +28,11 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const db = openDatabase();
-    if (!db) {
-      setError('Failed to open database');
-      return;
-    }
+    try {
+      const db = openDatabase('russia.db');
 
-    Object.entries(QUERIES).forEach(([category, query]) => {
-      db.transaction(
-        tx => {
+      Object.entries(QUERIES).forEach(([category, query]) => {
+        db.transaction(tx => {
           tx.executeSql(
             query,
             [],
@@ -49,13 +44,12 @@ export default function App() {
               return false;
             }
           );
-        },
-        error => {
-          console.error('Transaction error:', error);
-          setError('Failed to load database');
-        }
-      );
-    });
+        });
+      });
+    } catch (err) {
+      console.error('Database error:', err);
+      setError('Failed to load database');
+    }
   }, []);
 
   if (error) {

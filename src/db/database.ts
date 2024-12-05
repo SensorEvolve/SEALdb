@@ -1,11 +1,10 @@
-import * as SQLite from 'expo-sqlite';
-import { CREATE_TABLES } from './schema';
+import { openDatabase as openSQLiteDatabase } from 'expo-sqlite';
 
-let db: SQLite.SQLiteDatabase | null = null;
+let db: ReturnType<typeof openSQLiteDatabase> | null = null;
 
 export const openDatabase = () => {
   if (db === null) {
-    db = SQLite.openDatabase('russia.db');
+    db = openSQLiteDatabase('russia.db');
   }
   return db;
 };
