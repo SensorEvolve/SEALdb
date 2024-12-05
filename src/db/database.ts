@@ -1,13 +1,13 @@
-import * as SQLite from 'expo-sqlite';
+import { openDatabase as SQLiteOpenDB } from 'expo-sqlite';
 
 export class DatabaseConnection {
-  private static database: SQLite.SQLiteDatabase;
+  private static database: any;
 
   private constructor() {}
 
-  public static getConnection(): SQLite.SQLiteDatabase {
+  public static getConnection() {
     if (!this.database) {
-      this.database = SQLite.openDatabase('russia.db');
+      this.database = SQLiteOpenDB('russia.db');
     }
     return this.database;
   }
