@@ -28,32 +28,36 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const db = SQLite.openDatabase('russia.db');
-    const allVehicles: Vehicle[] = [];
+    try {
+      const db = SQLite.openDatabase('russia.db');
 
-    Object.entries(QUERIES).forEach(([category, query]) => {
-      db.transaction(
-        tx => {
-          tx.executeSql(
-            query,
-            [],
-            (_, result) => {
-              if (result.rows && result.rows._array) {
-                setVehicles(curr => [...curr, ...result.rows._array]);
+      Object.entries(QUERIES).forEach(([category, query]) => {
+        db.transaction(
+          tx => {
+            tx.executeSql(
+              query,
+              [],
+              (_, result) => {
+                if (result.rows && result.rows._array) {
+                  setVehicles(curr => [...curr, ...result.rows._array]);
+                }
+              },
+              (_, error) => {
+                console.error(`Error executing ${category} query:`, error);
+                return false;
               }
-            },
-            (_, error) => {
-              console.error(`Error executing ${category} query:`, error);
-              return false;
-            }
-          );
-        },
-        error => {
-          console.error('Transaction error:', error);
-          setError('Failed to load database');
-        }
-      );
-    });
+            );
+          },
+          error => {
+            console.error('Transaction error:', error);
+            setError('Failed to load database');
+          }
+        );
+      });
+    } catch (err) {
+      console.error('Database error:', err);
+      setError('Failed to load database');
+    }
   }, []);
 
   if (error) {
@@ -75,7 +79,7 @@ export default function App() {
           showsHorizontalScrollIndicator={false}
           style={styles.categoryScroll}
         >
-          {['all', 'bomber', 'fighter', 'helicopter', 'transport'].map(
+          {['all', 'fighter', 'helicopter', 'transport'].map(
             (category) => (
               <TouchableOpacity
                 key={category}
