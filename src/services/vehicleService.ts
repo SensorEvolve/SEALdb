@@ -1,38 +1,37 @@
-import * as SQLite from "expo-sqlite";
+import { WebSQLDatabase } from "expo-sqlite";
+import { QUERIES } from "../db/queries";
 import { Vehicle } from "../types/vehicle";
-import React from "react";
 
-type SetVehiclesAction = React.Dispatch<React.SetStateAction<Vehicle[]>>;
+export const loadVehicles = async (database: WebSQLDatabase): Promise<Vehicle[]> => {
+  return new Promise((resolve, reject) => {
+    const vehicles: Vehicle[] = [];
+    const queries = Object.values(QUERIES);
+    let completedQueries = 0;
 
-export const loadVehicles = (
-  database: SQLite.WebSQLDatabase,
-  setVehicles: SetVehiclesAction
-): void => {
-  const categories = {
-    bombers: 'SELECT *, "bomber" as category FROM russian_bombers',
-    fighters: 'SELECT *, "fighter" as category FROM russian_fighters',
-    helicopters: 'SELECT *, "helicopter" as category FROM russian_helicopters',
-    transport:
-      'SELECT *, "transport" as category FROM russian_transport_aircraft',
-  };
-
-  database.transaction((tx) => {
-    Object.entries(categories).forEach(([key, query]) => {
-      tx.executeSql(
-        query,
-        [],
-        (_, result) => {
-          const vehicles = Array.from(
-            { length: result.rows.length },
-            (_, i) => result.rows.item(i) as Vehicle
+    database.transaction(
+      (tx) => {
+        queries.forEach((query) => {
+          tx.executeSql(
+            query,
+            [],
+            (_, result) => {
+              vehicles.push(...(result.rows._array as Vehicle[]));
+              completedQueries++;
+              if (completedQueries === queries.length) {
+                resolve(vehicles);
+              }
+            },
+            (_, error) => {
+              console.error("Error executing query:", error);
+              return false;
+            }
           );
-          setVehicles((current) => [...current, ...vehicles]);
-        },
-        (_, error) => {
-          console.error(`Error loading ${key}:`, error);
-          return false;
-        }
-      );
-    });
+        });
+      },
+      (error) => {
+        console.error("Transaction error:", error);
+        reject(error);
+      }
+    );
   });
 };

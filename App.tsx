@@ -8,65 +8,39 @@ import {
   SafeAreaView,
   StatusBar,
 } from "react-native";
-import * as SQLite from "expo-sqlite";
-
-interface Vehicle {
-  Name: string;
-  Type: string;
-  "Max Speed (km/h)": number;
-  "Service Ceiling (m)": number;
-  "Range (km)": number;
-  "Combat Radius (km)": number;
-  category: string;
-}
+import { openDatabase } from "./src/db/database";
+import { loadVehicles } from "./src/services/vehicleService";
+import { Vehicle } from "./src/types/vehicle";
 
 export default function App() {
-  const [db, setDb] = useState<SQLite.SQLiteDatabase | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const database = SQLite.openDatabaseSync("russia.db");
-      setDb(database);
-      loadVehicles(database);
-    } catch (error) {
-      console.error("Error opening database:", error);
-    }
-  }, []);
-  const loadVehicles = async (database: SQLite.SQLiteDatabase) => {
-    const categories = {
-      bombers: 'SELECT *, "bomber" as category FROM russian_bombers',
-      fighters: 'SELECT *, "fighter" as category FROM russian_fighters',
-      helicopters:
-        'SELECT *, "helicopter" as category FROM russian_helicopters',
-      transport:
-        'SELECT *, "transport" as category FROM russian_transport_aircraft',
+    const initializeApp = async () => {
+      try {
+        const db = await openDatabase();
+        const loadedVehicles = await loadVehicles(db);
+        setVehicles(loadedVehicles);
+      } catch (err) {
+        console.error("Error initializing app:", err);
+        setError("Failed to load database");
+      }
     };
-    database.transaction((tx) => {
-      Object.entries(categories).forEach(([key, query]) => {
-        tx.executeSql(
-          query,
-          [],
-          (_tx: any, result: { rows: { _array: any[] } }) => {
-            const {
-              rows: { _array },
-            } = result;
-            setVehicles((current) => [...current, ...(_array as Vehicle[])]);
-          },
-          (_tx: any, error: Error) => {
-            console.error(`Error loading ${key}:`, error);
-            return false;
-          }
-        );
-      });
-    });
-    try {
-    } catch (error) {
-      console.error("Database error:", error);
-    }
-  };
+
+    initializeApp();
+  }, []);
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1E2022" />
@@ -186,5 +160,11 @@ const styles = StyleSheet.create({
   specText: {
     color: "#E5E5E5",
     fontSize: 14,
+  },
+  errorText: {
+    color: "#E5E5E5",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 20,
   },
 });
