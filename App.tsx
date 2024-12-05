@@ -12,15 +12,15 @@ import * as SQLite from 'expo-sqlite';
 import { QUERIES } from './src/db/queries';
 import { openDatabase } from './src/db/database';
 
-interface Vehicle {
+type Vehicle = {
   Name: string;
   Type: string;
   'Max Speed (km/h)': number;
   'Service Ceiling (m)': number;
   'Range (km)': number;
-  'Combat Radius (km)': number;
+  'Combat Radius (km)'?: number;
   category: string;
-}
+};
 
 export default function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -29,41 +29,33 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadData = () => {
-      try {
-        const db = openDatabase();
-        const queries = Object.values(QUERIES);
+    const db = openDatabase();
+    if (!db) {
+      setError('Failed to open database');
+      return;
+    }
 
-        db.transaction(
-          (tx: SQLite.SQLTransaction) => {
-            queries.forEach(query => {
-              tx.executeSql(
-                query,
-                [],
-                (_: SQLite.SQLTransaction, result: SQLite.SQLResultSet) => {
-                  const newVehicles = result.rows._array as Vehicle[];
-                  setVehicles(current => [...current, ...newVehicles]);
-                },
-                (_: SQLite.SQLTransaction, error: SQLite.SQLError): boolean => {
-                  console.error('SQL Error:', error);
-                  return false;
-                }
-              );
-            });
-          },
-          (error: SQLite.SQLError) => {
-            console.error('Transaction error:', error);
-            setError('Failed to load database');
-          },
-          () => console.log('Data loaded successfully')
-        );
-      } catch (err) {
-        console.error('Database error:', err);
-        setError('Failed to load database');
-      }
-    };
-
-    loadData();
+    Object.entries(QUERIES).forEach(([category, query]) => {
+      db.transaction(
+        tx => {
+          tx.executeSql(
+            query,
+            [],
+            (_, result) => {
+              setVehicles(curr => [...curr, ...(result.rows._array || [])]);
+            },
+            (_, error) => {
+              console.error(`Error executing ${category} query:`, error);
+              return false;
+            }
+          );
+        },
+        error => {
+          console.error('Transaction error:', error);
+          setError('Failed to load database');
+        }
+      );
+    });
   }, []);
 
   if (error) {

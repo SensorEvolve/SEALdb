@@ -5,7 +5,9 @@ export const CREATE_TABLES = `
     "Max Speed (km/h)" INTEGER,
     "Service Ceiling (m)" INTEGER,
     "Range (km)" INTEGER,
-    "Combat Radius (km)" INTEGER
+    "Combat Radius (km)" INTEGER,
+    "Radar System" TEXT,
+    "Radar Range (km)" TEXT
   );
 
   CREATE TABLE IF NOT EXISTS russian_fighters (
@@ -14,7 +16,10 @@ export const CREATE_TABLES = `
     "Max Speed (km/h)" INTEGER,
     "Service Ceiling (m)" INTEGER,
     "Range (km)" INTEGER,
-    "Combat Radius (km)" INTEGER
+    "Combat Radius (km)" INTEGER,
+    "Generation" TEXT,
+    "Radar System" TEXT,
+    "Radar Range (km)" TEXT
   );
 
   CREATE TABLE IF NOT EXISTS russian_helicopters (
@@ -23,7 +28,9 @@ export const CREATE_TABLES = `
     "Max Speed (km/h)" INTEGER,
     "Service Ceiling (m)" INTEGER,
     "Range (km)" INTEGER,
-    "Combat Radius (km)" INTEGER
+    "Combat Radius (km)" INTEGER,
+    "Radar System" TEXT,
+    "Radar Range (km)" TEXT
   );
 
   CREATE TABLE IF NOT EXISTS russian_transport_aircraft (
@@ -32,6 +39,7 @@ export const CREATE_TABLES = `
     "Max Speed (km/h)" INTEGER,
     "Service Ceiling (m)" INTEGER,
     "Range (km)" INTEGER,
-    "Combat Radius (km)" INTEGER
+    "Max Takeoff Weight (tons)" INTEGER,
+    "Cargo Capacity (tons)" REAL
   );
 `;
