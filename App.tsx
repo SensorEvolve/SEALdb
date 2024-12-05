@@ -22,20 +22,6 @@ type Vehicle = {
   category: string;
 };
 
-type SQLResultSet = {
-  rows: {
-    _array: any[];
-    length: number;
-    item: (index: number) => any;
-  };
-  rowsAffected: number;
-  insertId?: number;
-};
-
-type SQLError = {
-  message: string;
-};
-
 export default function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -45,20 +31,20 @@ export default function App() {
   useEffect(() => {
     try {
       const db = openDatabase();
+      if (!db) {
+        throw new Error('Could not open database');
+      }
 
       Object.entries(QUERIES).forEach(([category, query]) => {
-        db.transaction((tx: any) => {
-          tx.executeSql(
-            query,
-            [],
-            (_: any, result: SQLResultSet) => {
-              setVehicles(curr => [...curr, ...(result.rows._array || [])]);
-            },
-            (_: any, error: SQLError): boolean => {
-              console.error(`Error executing ${category} query:`, error);
-              return false;
-            }
-          );
+        (db as any).exec([{ sql: query, args: [] }], false, (err: Error, resultSet: any[]) => {
+          if (err) {
+            console.error(`Error executing ${category} query:`, err);
+            return;
+          }
+          
+          if (resultSet && resultSet[0] && resultSet[0].rows) {
+            setVehicles(curr => [...curr, ...resultSet[0].rows]);
+          }
         });
       });
     } catch (err) {
