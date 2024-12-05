@@ -1,7 +1,7 @@
-import React from 'react';
-import { StyleSheet, SafeAreaView } from 'react-native';
-import { SQLiteProvider } from 'expo-sqlite';
-import { VehicleList } from './src/components/VehicleList';
+import React from "react";
+import { StyleSheet, SafeAreaView } from "react-native";
+import { SQLiteProvider } from "expo-sqlite";
+import { VehicleList } from "./src/components/VehicleList";
 
 export default function App() {
   return (
@@ -20,6 +20,6 @@ async function initDatabase(db: SQLite.SQLiteDatabase) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E2022',
+    backgroundColor: "#1E2022",
   },
 });
