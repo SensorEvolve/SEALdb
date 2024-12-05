@@ -3,5 +3,5 @@ export const QUERIES = {
   GET_HELICOPTERS:
     'SELECT *, "helicopter" as category FROM russian_helicopters',
   GET_TRANSPORT:
-    'SELECT *, "transport" as category FROM russian_transport_aircraft'
+    'SELECT *, "transport" as category FROM russian_transport_aircraft',
 };
