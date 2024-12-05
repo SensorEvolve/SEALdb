@@ -1,4 +1,4 @@
-import * as SQLite from 'expo-sqlite';
+const { openDatabase } = require('expo-sqlite');
 
 export class DatabaseConnection {
   private static database: any;
@@ -7,7 +7,7 @@ export class DatabaseConnection {
 
   public static getConnection() {
     if (!this.database) {
-      this.database = SQLite.default.openDatabase('russia.db');
+      this.database = openDatabase('russia.db');
     }
     return this.database;
   }
