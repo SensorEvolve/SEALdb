@@ -8,8 +8,9 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { openDatabase } from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import { QUERIES } from './src/db/queries';
+import { openDatabase } from './src/db/database';
 
 type Vehicle = {
   Name: string;
@@ -21,6 +22,20 @@ type Vehicle = {
   category: string;
 };
 
+type SQLResultSet = {
+  rows: {
+    _array: any[];
+    length: number;
+    item: (index: number) => any;
+  };
+  rowsAffected: number;
+  insertId?: number;
+};
+
+type SQLError = {
+  message: string;
+};
+
 export default function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -29,17 +44,17 @@ export default function App() {
 
   useEffect(() => {
     try {
-      const db = openDatabase('russia.db');
+      const db = openDatabase();
 
       Object.entries(QUERIES).forEach(([category, query]) => {
-        db.transaction(tx => {
+        db._transaction((tx: any) => {
           tx.executeSql(
             query,
             [],
-            (_, result) => {
+            (_: any, result: SQLResultSet) => {
               setVehicles(curr => [...curr, ...(result.rows._array || [])]);
             },
-            (_, error) => {
+            (_: any, error: SQLError): boolean => {
               console.error(`Error executing ${category} query:`, error);
               return false;
             }

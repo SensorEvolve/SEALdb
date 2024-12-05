@@ -1,10 +1,12 @@
-import { openDatabase as openSQLiteDatabase } from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 
-let db: ReturnType<typeof openSQLiteDatabase> | null = null;
+type DatabaseType = ReturnType<typeof SQLite.openDatabaseSync>;
 
-export const openDatabase = () => {
+let db: DatabaseType | null = null;
+
+export const openDatabase = (): DatabaseType => {
   if (db === null) {
-    db = openSQLiteDatabase('russia.db');
+    db = SQLite.openDatabaseSync('russia.db');
   }
   return db;
 };
