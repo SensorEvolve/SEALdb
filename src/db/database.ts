@@ -1,25 +1,21 @@
 import * as SQLite from 'expo-sqlite';
 import { CREATE_TABLES } from './schema';
 
-type SQLiteCallback = SQLite.SQLTransaction;
+type Database = SQLite.SQLiteDatabase;
+type SQLTransaction = SQLite.SQLTransaction;
 
-export const openDatabase = (): SQLite.SQLiteDatabase => {
-  try {
-    const db = SQLite.openDatabase('russia.db');
-    db.transaction(
-      (tx: SQLiteCallback) => {
-        tx.executeSql(CREATE_TABLES);
-      },
-      (error) => {
-        console.error('Error creating tables:', error);
-      },
-      () => {
-        console.log('Database initialized successfully');
-      }
-    );
-    return db;
-  } catch (error) {
-    console.error('Error opening database:', error);
-    throw error;
-  }
+export const openDatabase = () => {
+  const db = SQLite.openDatabase('russia.db');
+  initDatabase(db);
+  return db;
+};
+
+const initDatabase = (db: Database) => {
+  db.transaction(
+    (tx: SQLTransaction) => {
+      tx.executeSql(CREATE_TABLES);
+    },
+    error => console.error('Error initializing database:', error),
+    () => console.log('Database initialized successfully')
+  );
 };

@@ -29,32 +29,33 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadData = () => {
       try {
         const db = openDatabase();
-        const categories = Object.values(QUERIES);
-        
+        const queries = Object.values(QUERIES);
+
         db.transaction(
           (tx: SQLite.SQLTransaction) => {
-            categories.forEach((query) => {
+            queries.forEach(query => {
               tx.executeSql(
                 query,
                 [],
-                (_, result) => {
+                (_: SQLite.SQLTransaction, result: SQLite.SQLResultSet) => {
                   const newVehicles = result.rows._array as Vehicle[];
                   setVehicles(current => [...current, ...newVehicles]);
                 },
-                (_, error) => {
-                  console.error('Error executing query:', error);
+                (_: SQLite.SQLTransaction, error: SQLite.SQLError): boolean => {
+                  console.error('SQL Error:', error);
                   return false;
                 }
               );
             });
           },
-          (error) => {
+          (error: SQLite.SQLError) => {
             console.error('Transaction error:', error);
             setError('Failed to load database');
-          }
+          },
+          () => console.log('Data loaded successfully')
         );
       } catch (err) {
         console.error('Database error:', err);
