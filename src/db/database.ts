@@ -1,30 +1,25 @@
-import * as SQLite from "expo-sqlite";
-import { WebSQLDatabase } from "expo-sqlite";
-import { CREATE_TABLES } from "./schema";
+import * as SQLite from 'expo-sqlite';
+import { CREATE_TABLES } from './schema';
 
-let database: WebSQLDatabase | null = null;
+type SQLiteCallback = SQLite.SQLTransaction;
 
-export const openDatabase = async (): Promise<WebSQLDatabase> => {
-  if (database === null) {
-    database = SQLite.openDatabase("russia.db");
-    await initializeDatabase(database);
-  }
-  return database;
-};
-
-const initializeDatabase = async (db: WebSQLDatabase): Promise<void> => {
-  return new Promise((resolve, reject) => {
+export const openDatabase = (): SQLite.SQLiteDatabase => {
+  try {
+    const db = SQLite.openDatabase('russia.db');
     db.transaction(
-      (tx) => {
+      (tx: SQLiteCallback) => {
         tx.executeSql(CREATE_TABLES);
       },
       (error) => {
-        console.error("Error initializing database:", error);
-        reject(error);
+        console.error('Error creating tables:', error);
       },
       () => {
-        resolve();
+        console.log('Database initialized successfully');
       }
     );
-  });
+    return db;
+  } catch (error) {
+    console.error('Error opening database:', error);
+    throw error;
+  }
 };
